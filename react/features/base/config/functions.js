@@ -46,8 +46,6 @@ const WHITELISTED_KEYS = [
     'disableAGC',
     'disableAP',
     'disableAudioLevels',
-    'disableDesktopSharing',
-    'disableDesktopSharing',
     'disableH264',
     'disableHPF',
     'disableNS',

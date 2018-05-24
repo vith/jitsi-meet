@@ -138,7 +138,7 @@ function _maybeSetCalleeInfoVisible({ dispatch, getState }, next, action) {
  */
 function _overwriteLocalParticipant(
         { dispatch, getState },
-        { avatarURL, email, name }) {
+        { avatarURL, email, name, features }) {
     let localParticipant;
 
     if ((avatarURL || email || name)
@@ -156,6 +156,9 @@ function _overwriteLocalParticipant(
         }
         if (name) {
             newProperties.name = name;
+        }
+        if (features) {
+            newProperties.features = features;
         }
         dispatch(participantUpdated(newProperties));
     }
@@ -262,10 +265,10 @@ function _setJWT(store, next, action) {
  */
 function _undoOverwriteLocalParticipant(
         { dispatch, getState },
-        { avatarURL, name, email }) {
+        { avatarURL, name, email, features }) {
     let localParticipant;
 
-    if ((avatarURL || name || email)
+    if ((avatarURL || name || email || features)
             && (localParticipant = getLocalParticipant(getState))) {
         const newProperties: Object = {
             id: localParticipant.id,
@@ -280,6 +283,9 @@ function _undoOverwriteLocalParticipant(
         }
         if (name === localParticipant.name) {
             newProperties.name = undefined;
+        }
+        if (features === localParticipant.features) {
+            newProperties.features = undefined;
         }
         dispatch(participantUpdated(newProperties));
     }
@@ -298,7 +304,7 @@ function _undoOverwriteLocalParticipant(
  *     name: ?string
  * }}
  */
-function _user2participant({ avatar, avatarUrl, email, id, name }) {
+function _user2participant({ avatar, avatarUrl, email, id, name, features }) {
     const participant = {};
 
     if (typeof avatarUrl === 'string') {
@@ -314,6 +320,9 @@ function _user2participant({ avatar, avatarUrl, email, id, name }) {
     }
     if (typeof name === 'string') {
         participant.name = name.trim();
+    }
+    if (typeof features === 'object') {
+        participant.features = features;
     }
 
     return Object.keys(participant).length ? participant : undefined;
