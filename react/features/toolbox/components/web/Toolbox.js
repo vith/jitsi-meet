@@ -16,6 +16,7 @@ import {
     PARTICIPANT_ROLE,
     getLocalParticipant,
     getParticipants,
+    isLocalParticipantModerator,
     participantUpdated
 } from '../../../base/participants';
 import { getLocalVideoTrack, toggleScreensharing } from '../../../base/tracks';
@@ -125,6 +126,11 @@ type Props = {
      * Whether or not the current user is logged in through a JWT.
      */
     _isGuest: boolean,
+
+    /**
+     * Whether or not the live streaming feature is enabled for use.
+     */
+    _liveStreamingEnabled: boolean,
 
     /**
      * The current live streaming session, if any.
@@ -960,6 +966,7 @@ class Toolbox extends Component<Props> {
             _feedbackConfigured,
             _fullScreen,
             _isGuest,
+            _liveStreamingEnabled,
             _liveStreamingSession,
             _recordingEnabled,
             _sharingVideo,
@@ -987,7 +994,7 @@ class Toolbox extends Component<Props> {
                     text = { _fullScreen
                         ? t('toolbar.exitFullScreen')
                         : t('toolbar.enterFullScreen') } />,
-            _recordingEnabled
+            _liveStreamingEnabled
                 && this._shouldShowButton('livestreaming')
                 && <OverflowMenuLiveStreamingItem
                     key = 'livestreaming'
@@ -1113,6 +1120,8 @@ function _mapStateToProps(state) {
     const isModerator = localParticipant.role === PARTICIPANT_ROLE.MODERATOR;
     const addPeopleEnabled = isAddPeopleEnabled(state);
     const dialOutEnabled = isDialOutEnabled(state);
+    const recordingEnabled
+        = isLocalParticipantModerator(state) && enableRecording;
     let desktopSharingDisabledTooltipKey;
 
     if (state['features/base/config'].enableFeaturesBasedOnToken) {
@@ -1152,7 +1161,8 @@ function _mapStateToProps(state) {
         _localParticipantID: localParticipant.id,
         _overflowMenuVisible: overflowMenuVisible,
         _raisedHand: localParticipant.raisedHand,
-        _recordingEnabled: isModerator && enableRecording,
+        _liveStreamingEnabled: isModerator && enableRecording,
+        _recordingEnabled: recordingEnabled,
         _screensharing: localVideo && localVideo.videoType === 'desktop',
         _sharingVideo: sharedVideoStatus === 'playing'
             || sharedVideoStatus === 'start'
