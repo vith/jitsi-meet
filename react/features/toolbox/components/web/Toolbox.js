@@ -158,6 +158,12 @@ type Props = {
     _recordingEnabled: boolean,
 
     /**
+     * The tooltip key to use when recording is disabled. Or undefined
+     * if non to be shown and the button to be hidden.
+     */
+    _recordingDisabledTooltipKey: boolean,
+
+    /**
      * Whether or not the local participant is screensharing.
      */
     _screensharing: boolean,
@@ -969,6 +975,7 @@ class Toolbox extends Component<Props> {
             _liveStreamingEnabled,
             _liveStreamingSession,
             _recordingEnabled,
+            _recordingDisabledTooltipKey,
             _sharingVideo,
             t
         } = this.props;
@@ -1000,7 +1007,7 @@ class Toolbox extends Component<Props> {
                     key = 'livestreaming'
                     onClick = { this._onToolbarToggleLiveStreaming }
                     session = { _liveStreamingSession } />,
-            _recordingEnabled
+            (_recordingEnabled || _recordingDisabledTooltipKey)
                 && this._shouldShowButton('recording')
                 && this._renderRecordingButton(),
             this._shouldShowButton('sharedvideo')
@@ -1059,7 +1066,11 @@ class Toolbox extends Component<Props> {
      * @returns {ReactElement|null}
      */
     _renderRecordingButton() {
-        const { _fileRecordingSession, t } = this.props;
+        const {
+            _fileRecordingSession,
+            _recordingDisabledTooltipKey,
+            _recordingEnabled,
+            t } = this.props;
 
         const translationKey = _fileRecordingSession
             ? 'dialog.stopRecording'
@@ -1068,10 +1079,12 @@ class Toolbox extends Component<Props> {
         return (
             <OverflowMenuItem
                 accessibilityLabel = 'Record'
+                disabled = { !_recordingEnabled }
                 icon = 'icon-camera-take-picture'
                 key = 'recording'
                 onClick = { this._onToolbarToggleRecording }
-                text = { t(translationKey) } />
+                text = { t(translationKey) }
+                tooltip = { t(_recordingDisabledTooltipKey) } />
         );
     }
 
@@ -1120,9 +1133,10 @@ function _mapStateToProps(state) {
     const isModerator = localParticipant.role === PARTICIPANT_ROLE.MODERATOR;
     const addPeopleEnabled = isAddPeopleEnabled(state);
     const dialOutEnabled = isDialOutEnabled(state);
-    const recordingEnabled
+    let recordingEnabled
         = isLocalParticipantModerator(state) && enableRecording;
     let desktopSharingDisabledTooltipKey;
+    let recordingDisabledTooltipKey;
 
     if (state['features/base/config'].enableFeaturesBasedOnToken) {
         // we enable desktop sharing if any participant already have this
@@ -1138,6 +1152,25 @@ function _mapStateToProps(state) {
         } else {
             desktopSharingDisabledTooltipKey
                 = 'dialog.shareYourScreenDisabled';
+        }
+
+        // we enable recording if the local participant have this
+        // feature enabled
+        const { features = {} } = localParticipant;
+
+        recordingEnabled
+            = recordingEnabled && String(features.recording) === 'true';
+
+        // if the feature is disabled on purpose, do no show it, no tooltip
+        if (!recordingEnabled && String(features.recording) !== 'disabled') {
+            // button and tooltip
+            if (state['features/base/jwt'].isGuest) {
+                recordingDisabledTooltipKey
+                    = 'dialog.recordingDisabledForGuestTooltip';
+            } else {
+                recordingDisabledTooltipKey
+                    = 'dialog.recordingDisabledTooltip';
+            }
         }
     }
 
@@ -1163,6 +1196,7 @@ function _mapStateToProps(state) {
         _raisedHand: localParticipant.raisedHand,
         _liveStreamingEnabled: isModerator && enableRecording,
         _recordingEnabled: recordingEnabled,
+        _recordingDisabledTooltipKey: recordingDisabledTooltipKey,
         _screensharing: localVideo && localVideo.videoType === 'desktop',
         _sharingVideo: sharedVideoStatus === 'playing'
             || sharedVideoStatus === 'start'
