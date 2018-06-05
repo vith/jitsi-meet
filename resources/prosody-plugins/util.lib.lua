@@ -131,7 +131,21 @@ function update_presence_identity(
         "Presence with identity inserted %s", tostring(stanza))
 end
 
+-- Utility function to check whether feature is present and enabled. Apply
+-- feature restriction, only if features are present in the session(coming from
+-- the token) and the value of the feature is not true.
+function apply_features_restriction(session, feature)
+    if (session.jitsi_meet_context_user ~= nil
+        and session.jitsi_meet_context_user["features"] ~= nil
+        and session.jitsi_meet_context_user["features"][feature] ~= "true") then
+        return true;
+    else
+        return false;
+    end
+end
+
 return {
+    apply_features_restriction = apply_features_restriction;
     get_room_from_jid = get_room_from_jid;
     wrap_async_run = wrap_async_run;
     room_jid_match_rewrite = room_jid_match_rewrite;

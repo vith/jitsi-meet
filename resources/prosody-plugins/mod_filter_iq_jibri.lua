@@ -1,4 +1,5 @@
 local st = require "util.stanza";
+local apply_features_restriction = module:require "util".apply_features_restriction;
 
 -- filters jibri iq in case of requested from jwt authenticated session that
 -- has features in the user context, but without feature for recording
@@ -13,9 +14,7 @@ module:hook("pre-iq/full", function(event)
             if jibri.attr.action == 'start'
                 and jibri.attr.recording_mode == 'file'
                 and (token == nil
-                    or session.jitsi_meet_context_user == nil
-                    or session.jitsi_meet_context_user["features"] == nil
-                    or session.jitsi_meet_context_user["features"]["recording"] ~= "true") then
+                    or apply_features_restriction(session, "recording")) then
                 module:log("info",
                     "Filtering jibri start recording, stanza:%s", tostring(stanza));
                 session.send(st.error_reply(stanza, "auth", "forbidden"));

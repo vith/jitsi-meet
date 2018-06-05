@@ -2,6 +2,7 @@ local st = require "util.stanza";
 
 local token_util = module:require "token/util".new(module);
 local room_jid_match_rewrite = module:require "util".room_jid_match_rewrite;
+local apply_features_restriction = module:require "util".apply_features_restriction;
 
 -- no token configuration but required
 if token_util == nil then
@@ -34,8 +35,7 @@ module:hook("pre-iq/full", function(event)
             if token == nil
                 or roomName == nil
                 or not token_util:verify_room(session, room_jid_match_rewrite(roomName))
-                or (session.jitsi_meet_context_user["features"]
-                   and session.jitsi_meet_context_user["features"]["outbound-call"] ~= "true")
+                or apply_features_restriction(session, "outbound-call")
             then
                 module:log("info",
                     "Filtering stanza dial, stanza:%s", tostring(stanza));
