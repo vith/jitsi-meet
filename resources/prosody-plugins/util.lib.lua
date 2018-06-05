@@ -131,13 +131,15 @@ function update_presence_identity(
         "Presence with identity inserted %s", tostring(stanza))
 end
 
--- Utility function to check whether feature is present and enabled. Apply
--- feature restriction, only if features are present in the session(coming from
--- the token) and the value of the feature is not true.
-function apply_features_restriction(session, feature)
-    if (session.jitsi_meet_context_user ~= nil
-        and session.jitsi_meet_context_user["features"] ~= nil
-        and session.jitsi_meet_context_user["features"][feature] ~= "true") then
+-- Utility function to check whether feature is present and enabled. Allow
+-- a feature if there are features present in the session(coming from
+-- the token) and the value of the feature is true.
+-- If features is not present in the token we skip feature detection and allow
+-- everything.
+function is_feature_allowed(session, feature)
+    if (session.jitsi_meet_context_user == nil
+        or session.jitsi_meet_context_user["features"] == nil
+        or session.jitsi_meet_context_user["features"][feature] == "true") then
         return true;
     else
         return false;
