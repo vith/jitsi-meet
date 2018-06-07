@@ -273,6 +273,8 @@ function Util:process_and_verify_token(session)
     if claims ~= nil then
         -- Binds room name to the session which is later checked on MUC join
         session.jitsi_meet_room = claims["room"];
+        -- Binds room affiliation to the session
+        session.jitsi_meet_room_affiliation = claims["room_affiliation"];
         -- Binds domain name to the session
         session.jitsi_meet_domain = claims["sub"];
 
